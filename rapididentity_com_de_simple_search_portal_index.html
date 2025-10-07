@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>rapididentity.com.de — Search</title>
+  <meta name="description" content="A simple, fast search portal." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg: #0b0f17;
+      --card: #121826;
+      --muted: #9aa4b2;
+      --text: #e7ebf3;
+      --accent: #6ea8fe;
+      --accent2: #a78bfa;
+      --radius: 18px;
+    }
+    *{ box-sizing: border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 1200px at 80% -10%, rgba(110,168,254,.15), transparent),
+                  radial-gradient(900px 900px at -10% 110%, rgba(167,139,250,.12), transparent),
+                  var(--bg);
+      color: var(--text);
+      display:flex; align-items:center; justify-content:center;
+      padding: 32px;
+    }
+    .wrap{ width:100%; max-width: 760px; }
+    header{ text-align:center; margin-bottom: 28px; }
+    header h1{ font-size: clamp(28px, 4vw, 40px); margin:0 0 8px; letter-spacing:.2px; }
+    header p{ margin:0; color: var(--muted); font-size: 14px; }
+    .card{ background: rgba(18,24,38,.72); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.06); border-radius: var(--radius); padding: 18px; }
+    form{ display:flex; gap:10px; }
+    .input{
+      flex:1; padding: 16px 18px; background: #0e1422; border: 1px solid rgba(255,255,255,.08);
+      color: var(--text); border-radius: calc(var(--radius) - 6px); font-size: 16px; outline: none;
+    }
+    .input:focus{ border-color: rgba(110,168,254,.6); box-shadow: 0 0 0 3px rgba(110,168,254,.18); }
+    .btn{
+      padding: 14px 18px; border-radius: calc(var(--radius) - 8px); border: 1px solid rgba(255,255,255,.1); cursor:pointer;
+      background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #0a0d14; font-weight: 700; letter-spacing:.2px;
+    }
+    .quick{ margin-top: 14px; display:flex; flex-wrap: wrap; gap: 8px; }
+    .chip{ padding:8px 12px; border-radius: 999px; background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08); color: var(--muted); font-size: 13px; cursor:pointer; }
+    footer{ margin-top: 18px; color: var(--muted); font-size: 12px; text-align:center; }
+    a{ color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>rapididentity.com.de</h1>
+      <p>Type a site, link, or search — we’ll take you there.</p>
+    </header>
+
+    <div class="card">
+      <form id="searchForm">
+        <input id="q" class="input" type="text" placeholder="Try: reddit, https://openai.com, or 'funny cats'" autocomplete="off" />
+        <button class="btn" type="submit">Go</button>
+      </form>
+      <div class="quick" id="quick">
+        <span class="chip" data-q="reddit">reddit</span>
+        <span class="chip" data-q="youtube">youtube</span>
+        <span class="chip" data-q="x">x</span>
+        <span class="chip" data-q="wikipedia">wikipedia</span>
+        <span class="chip" data-q="github">github</span>
+        <span class="chip" data-q="weather">weather</span>
+      </div>
+    </div>
+
+    <footer>
+      Opens destinations in a new tab. This portal doesn’t spoof other sites or embed them inside this domain.
+    </footer>
+  </div>
+
+  <script>
+    const mapping = {
+      reddit: "https://www.reddit.com/",
+      youtube: "https://www.youtube.com/",
+      x: "https://x.com/",
+      twitter: "https://x.com/",
+      instagram: "https://www.instagram.com/",
+      tiktok: "https://www.tiktok.com/",
+      github: "https://github.com/",
+      wikipedia: "https://wikipedia.org/",
+      gmail: "https://mail.google.com/",
+      maps: "https://maps.google.com/",
+      weather: "https://www.weather.com/",
+    };
+
+    const looksLikeUrl = (text) => {
+      try {
+        // If it parses as a URL with a scheme, it’s a URL
+        new URL(text);
+        return true;
+      } catch {
+        // If it has a dot and no spaces, we’ll assume it’s a domain
+        return /\./.test(text) && !/\s/.test(text);
+      }
+    };
+
+    const toAbsoluteUrl = (text) => {
+      if (/^https?:\/\//i.test(text)) return text;
+      return `https://${text}`;
+    };
+
+    const openNewTab = (url) => window.open(url, "_blank", "noopener,noreferrer");
+
+    document.getElementById("searchForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const q = document.getElementById("q").value.trim();
+      if (!q) return;
+
+      // Exact site name shortcuts (e.g., "reddit")
+      const key = q.toLowerCase();
+      if (mapping[key]) {
+        openNewTab(mapping[key]);
+        return;
+      }
+
+      // Direct URL or domain
+      if (looksLikeUrl(q)) {
+        openNewTab(toAbsoluteUrl(q));
+        return;
+      }
+
+      // Otherwise, run a web search (DuckDuckGo)
+      const url = `https://duckduckgo.com/?q=${encodeURIComponent(q)}`;
+      openNewTab(url);
+    });
+
+    // Quick chips
+    document.querySelectorAll('.chip').forEach(el => {
+      el.addEventListener('click', () => {
+        document.getElementById('q').value = el.dataset.q;
+        document.getElementById('searchForm').dispatchEvent(new Event('submit'));
+      });
+    });
+
+    // Focus the input on load
+    document.getElementById('q').focus();
+  </script>
+</body>
+</html>
